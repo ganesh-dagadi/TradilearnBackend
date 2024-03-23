@@ -1,15 +1,15 @@
 package org.virtuConf.demo.auth.dto;
 
 public class ValidateOTPDTO {
-    private Integer userID;
+    private Integer userId;
     private String otp;
 
-    public Integer getUserID() {
-        return userID;
+    public Integer getUserId() {
+        return userId;
     }
 
-    public void setUserID(Integer userID) {
-        this.userID = userID;
+    public void setUserId(Integer userId) {
+        this.userId = userId;
     }
 
     public String getOtp() {

@@ -3,7 +3,7 @@ package org.virtuConf.demo.auth.dto;
 public class RefreshTokenResponseDTO {
     private String accessToken;
 
-    public String getAccessToken() {
+    public String getToken() {
         return accessToken;
     }
 

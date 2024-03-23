@@ -17,12 +17,12 @@ import java.io.IOException;
 public class AuthController {
     @Autowired
     AuthService service;
-    @PostMapping("/register")
+    @PostMapping("/signup")
     public RegistrationResponseDTO registrationHandler(@RequestBody RegisterDTO requestData) throws ConflictError, IOException, BadRequest {
         return service.registerUser(requestData);
     }
 
-    @PostMapping("/otp/validate")
+    @PostMapping("/signup/verify")
     public SimpleMsgResponseDTO validateOTP(@RequestBody ValidateOTPDTO requestData) throws ResourceMissingError, UnauthenticatedError {
         return service.validateOTP(requestData);
     }

@@ -49,11 +49,11 @@ public class AuthServiceImpl implements AuthService{
     }
     @Override
     public SimpleMsgResponseDTO validateOTP(ValidateOTPDTO requestData) throws ResourceMissingError, UnauthenticatedError {
-        Optional<String> retrievedOTPOp = otpCache.getOTP(String.valueOf(requestData.getUserID()));
-        if(retrievedOTPOp.isEmpty()) throw new ResourceMissingError("OTP expired or not found");
+        Optional<String> retrievedOTPOp = otpCache.getOTP(String.valueOf(requestData.getUserId()));
+        if(retrievedOTPOp.isEmpty()) throw new UnauthenticatedError("OTP expired or not found" , 11);
         String retrievedOTP = retrievedOTPOp.get();
-        if(!retrievedOTP.equals(requestData.getOtp())) throw new UnauthenticatedError("OTP is wrong");
-        Optional<Person> personOp = personRepo.findById(requestData.getUserID());
+        if(!retrievedOTP.equals(requestData.getOtp())) throw new UnauthenticatedError("OTP is wrong" , 12);
+        Optional<Person> personOp = personRepo.findById(requestData.getUserId());
         if(personOp.isEmpty()) throw new ResourceMissingError("Person with provided id not found");
         Person person = personOp.get();
         person.setVerified(true);
@@ -80,12 +80,12 @@ public class AuthServiceImpl implements AuthService{
     public LoginResponseDTO login(LoginDTO requestData) throws BadRequest, ResourceMissingError, UnauthenticatedError {
         String email = requestData.getEmail();
         String password = requestData.getPassword();
-        if(email.isEmpty()) throw new BadRequest();
-        if(password.isEmpty()) throw new BadRequest();
+        if(email == null || email.isEmpty()) throw new BadRequest("Email needed" , 0);
+        if(password == null || password.isEmpty()) throw new BadRequest("Password needed" , 0);
         Optional<Person> personOp = personRepo.findByEmail(email);
         if(personOp.isEmpty()) throw new ResourceMissingError("Email not found");
         Person person = personOp.get();
-        if(!BCrypt.checkpw(password , person.getPassword())) throw new UnauthenticatedError("Email or password wrong");
+        if(!BCrypt.checkpw(password , person.getPassword())) throw new UnauthenticatedError("Email or password wrong" , 0);
         String accessToken = jwtHelper.generateSinglePayloadJWT("userId" , person.getId().toString() , true , true , 1200);
         String refreshToken = jwtHelper.generateSinglePayloadJWT("userId" , person.getId().toString() , false , false , 0);
         RefreshToken token = new RefreshToken();
@@ -95,6 +95,7 @@ public class AuthServiceImpl implements AuthService{
         response.setMsg("Logged in");
         response.setAccessToken(accessToken);
         response.setRefreshToken(refreshToken);
+        response.setPerson(PersonDataDTO.fromPersonEntity(person));
         return response;
     }
 

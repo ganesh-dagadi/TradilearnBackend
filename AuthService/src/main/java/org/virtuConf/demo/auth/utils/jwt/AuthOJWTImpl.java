@@ -51,10 +51,8 @@ public class AuthOJWTImpl implements JWTInterface{
         try{
             DecodedJWT decoded = JWT.require(jwtAlgo).build().verify(token);
             return decoded.getClaim(key).asString();
-        }catch(TokenExpiredException e){
-            throw new UnauthenticatedError("Token expired");
-        }catch (SignatureVerificationException e){
-            throw new BadRequest();
+        }catch(TokenExpiredException | SignatureVerificationException e){
+            throw new UnauthenticatedError("Token expired" , 2);
         }
 
     }

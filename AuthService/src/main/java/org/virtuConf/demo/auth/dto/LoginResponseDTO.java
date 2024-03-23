@@ -1,9 +1,12 @@
 package org.virtuConf.demo.auth.dto;
 
+import java.util.HashMap;
+import java.util.Map;
+
 public class LoginResponseDTO {
     private String msg;
-    private String accessToken;
-
+    private final Map<String , String> tokens= new HashMap<>();
+    private PersonDataDTO user;
     public String getMsg() {
         return msg;
     }
@@ -12,21 +15,23 @@ public class LoginResponseDTO {
         this.msg = msg;
     }
 
-    public String getAccessToken() {
-        return accessToken;
+       public void setAccessToken(String accessToken) {
+        tokens.put("access" , accessToken);
     }
 
-    public void setAccessToken(String accessToken) {
-        this.accessToken = accessToken;
-    }
-
-    public String getRefreshToken() {
-        return refreshToken;
+    public Map<String , String> getTokens() {
+        return tokens;
     }
 
     public void setRefreshToken(String refreshToken) {
-        this.refreshToken = refreshToken;
+        tokens.put("refresh" , refreshToken);
     }
 
-    private String refreshToken;
+    public PersonDataDTO getUser() {
+        return user;
+    }
+
+    public void setPerson(PersonDataDTO person) {
+        this.user = person;
+    }
 }

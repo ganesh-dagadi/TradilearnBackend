@@ -6,7 +6,7 @@ public class PersonDataDTO {
     private Integer id;
     private String username;
     private String email;
-    private Boolean isVerified;
+    private Boolean isEmailVerified;
     private Boolean isActive;
 
     public Integer getId() {
@@ -33,15 +33,15 @@ public class PersonDataDTO {
         this.email = email;
     }
 
-    public Boolean getVerified() {
-        return isVerified;
+    public Boolean getIsEmailVerified() {
+        return isEmailVerified;
     }
 
     public void setVerified(Boolean verified) {
-        isVerified = verified;
+        isEmailVerified = verified;
     }
 
-    public Boolean getActive() {
+    public Boolean getIsActive() {
         return isActive;
     }
 
