@@ -21,6 +21,9 @@ public class VirtuConfGateway {
                 )
                 .route("stockInfo" , r->r.path("/stockinfo/**")
                         .uri("http://localhost:9091/stockinfo/"))
+                .route("stockPrice" , r->r.path("/stockprice/**")
+                        .uri("http://localhost:9092/stockinfo/")
+                )
                 .build();
 
     }
