@@ -36,7 +36,7 @@ public class AuthController {
         return service.login(requestData);
     }
 
-    @PatchMapping("/token/refresh")
+    @PatchMapping("/newtoken")
     public RefreshTokenResponseDTO refreshToken(@RequestHeader(HttpHeaders.AUTHORIZATION) String authHeader) throws BadRequest, ResourceMissingError, UnauthenticatedError {
         if(!authHeader.startsWith("Bearer ")) throw new BadRequest();
         return service.refreshToken(authHeader.substring(7));

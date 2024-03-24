@@ -10,5 +10,6 @@
     <modules>
         <module>AuthService</module>
         <module>Gateway</module>
+        <module>PaperTraderService</module>
     </modules>
 </project>
