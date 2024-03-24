@@ -1,14 +1,14 @@
 package com.virtconf.paperTrader.controller;
 
 import com.virtconf.paperTrader.dto.AddMoneyRequestDTO;
+import com.virtconf.paperTrader.dto.BuyStockRequestDTO;
+import com.virtconf.paperTrader.dto.PersonDataDTO;
 import com.virtconf.paperTrader.service.TransactionService;
+import com.virtconf.paperTrader.utils.error.BadRequest;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.PatchMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.net.http.HttpHeaders;
 
@@ -18,9 +18,23 @@ public class TransactionController {
     @Autowired
     private TransactionService service;
     @PatchMapping("/addmoney")
-    public void addMoney(HttpServletRequest request , @RequestBody String requestData){
-        System.out.print(requestData);
-        System.out.print(request.getHeader("AUTH_USERNAME"));
-//        service.addMoneyToAccount(requestData);
+    public String addMoney(HttpServletRequest request , @RequestBody AddMoneyRequestDTO requestData) throws Exception {
+        PersonDataDTO user = createUserFromHeaders(request);
+        return service.addMoneyToAccount(user , requestData);
+    }
+    @PostMapping("/buy")
+    public String buyStock(HttpServletRequest request , @RequestBody BuyStockRequestDTO requestData) throws BadRequest {
+        PersonDataDTO user = createUserFromHeaders(request);
+        return service.buyStock(user , requestData);
+    }
+
+    private PersonDataDTO createUserFromHeaders(HttpServletRequest request){
+        PersonDataDTO user = new PersonDataDTO();
+        user.setEmail(request.getHeader("AUTH_EMAIL"));
+        user.setId(Integer.parseInt(request.getHeader("AUTH_USERID")));
+        user.setUsername(request.getHeader("AUTH_USERNAME"));
+        user.setEmailVerified(Boolean.getBoolean(request.getHeader("AUTH_VERIFIED")));
+        user.setActive(Boolean.getBoolean(request.getHeader("AUTH_ACTIVE")));
+        return user;
     }
 }

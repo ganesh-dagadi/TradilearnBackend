@@ -1,8 +1,8 @@
 package com.virtconf.paperTrader.model;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
+
+import java.util.List;
 
 @Entity
 public class Account {
@@ -12,6 +12,16 @@ public class Account {
     private Float balance;
     private Float amountAdded;
     private Integer personId;
+    @OneToMany(mappedBy = "account")
+    private List<Holding> holdings;
+    @OneToMany(mappedBy = "account")
+    private List<AccountTransaction> accountTransactions;
+
+    @OneToMany(mappedBy = "account")
+    private List<StockTransaction> stockTransactions;
+
+    @OneToMany(mappedBy = "account")
+    private List<Deductible> deductibles;
     public Integer getId() {
         return id;
     }
@@ -42,5 +52,35 @@ public class Account {
 
     public void setPersonId(Integer personId) {
         this.personId = personId;
+    }
+    public List<Holding> getHoldings() {
+        return holdings;
+    }
+
+    public void setHoldings(List<Holding> holdings) {
+        this.holdings = holdings;
+    }
+
+    public List<AccountTransaction> getAccountTransactions() {
+        return accountTransactions;
+    }
+
+    public void setAccountTransactions(List<AccountTransaction> accountTransactions) {
+        this.accountTransactions = accountTransactions;
+    }
+
+    public List<StockTransaction> getStockTransactions() {
+        return stockTransactions;
+    }
+
+    public void setStockTransactions(List<StockTransaction> stockTransactions) {
+        this.stockTransactions = stockTransactions;
+    }
+    public List<Deductible> getDeductibles() {
+        return deductibles;
+    }
+
+    public void setDeductibles(List<Deductible> deductibles) {
+        this.deductibles = deductibles;
     }
 }
