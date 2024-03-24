@@ -1,7 +1,7 @@
 package com.virtconf.paperTrader.service;
 
 import com.virtconf.paperTrader.dto.AddMoneyRequestDTO;
-import com.virtconf.paperTrader.dto.BuyStockRequestDTO;
+import com.virtconf.paperTrader.dto.BuySellStockRequestDTO;
 import com.virtconf.paperTrader.dto.PersonDataDTO;
 import com.virtconf.paperTrader.dto.StockLivePriceResponseDTO;
 import com.virtconf.paperTrader.model.*;
@@ -52,12 +52,12 @@ public class TransactionServiceImpl implements TransactionService{
     }
 
     @Override
-    public String buyStock(PersonDataDTO user, BuyStockRequestDTO requestData) throws BadRequest {
+    public String buyStock(PersonDataDTO user, BuySellStockRequestDTO requestData) throws BadRequest {
         String symbol = requestData.getSymbol().toUpperCase();
         WebClient client = WebClient.create("http://localhost:8080");
         StockLivePriceResponseDTO priceResponse = client
                 .get()
-                .uri("/stockprice/liveprice?ticker="+requestData.getSymbol())
+                .uri("/stockprice/liveprice?ticker="+symbol)
                 .retrieve()
                 .bodyToMono(StockLivePriceResponseDTO.class)
                 .block();
@@ -68,7 +68,7 @@ public class TransactionServiceImpl implements TransactionService{
         if(requestData.getIsLong() && account.getBalance() < price * requestData.getQty()) throw new BadRequest("Insufficient Balance");
         Holding existingHolding = null;
         for(int i = 0 ; i < account.getHoldings().size() ; i++){
-            if(account.getHoldings().get(i).getSymbol().equals(requestData.getSymbol()) && account.getHoldings().get(i).getIsLong().equals(requestData.getIsLong())){
+            if(account.getHoldings().get(i).getSymbol().equals(symbol) && account.getHoldings().get(i).getIsLong().equals(requestData.getIsLong())){
                 existingHolding = account.getHoldings().get(i);
             }
         }
@@ -88,8 +88,8 @@ public class TransactionServiceImpl implements TransactionService{
                 stockTransaction.setQty(requestData.getQty());
                 stockTransaction.setLong(requestData.getIsLong());
                 stockTransaction.setUnitValue(price);
-                stockTransaction.setSymbol(requestData.getSymbol());
-                Optional<Holding> holdingOp = holdingRepo.findByAccountIdSymbolAndLong(account , requestData.getSymbol(), requestData.getIsLong());
+                stockTransaction.setSymbol(symbol);
+                Optional<Holding> holdingOp = holdingRepo.findByAccountIdSymbolAndLong(account ,symbol, requestData.getIsLong());
                 if(holdingOp.isEmpty()) throw new RuntimeException();
                 Float newUnitVal = ((existingHolding.getUnitVal() * existingHolding.getQty()) + (price * requestData.getQty()))/(existingHolding.getQty() + requestData.getQty());
                 Holding holding  = holdingOp.get();
@@ -104,8 +104,8 @@ public class TransactionServiceImpl implements TransactionService{
                 stockTransaction.setQty(requestData.getQty());
                 stockTransaction.setLong(requestData.getIsLong());
                 stockTransaction.setUnitValue(price);
-                stockTransaction.setSymbol(requestData.getSymbol());
-                Optional<Holding> holdingOp = holdingRepo.findByAccountIdSymbolAndLong(account , requestData.getSymbol(), requestData.getIsLong());
+                stockTransaction.setSymbol(symbol);
+                Optional<Holding> holdingOp = holdingRepo.findByAccountIdSymbolAndLong(account , symbol, requestData.getIsLong());
                 if(holdingOp.isEmpty()) throw new RuntimeException();
                 Float newUnitVal = ((existingHolding.getUnitVal() * existingHolding.getQty()) + (price * requestData.getQty()))/(existingHolding.getQty() + requestData.getQty());
                 Holding holding  = holdingOp.get();
@@ -125,7 +125,7 @@ public class TransactionServiceImpl implements TransactionService{
                 stockTransaction.setQty(requestData.getQty());
                 stockTransaction.setLong(requestData.getIsLong());
                 stockTransaction.setUnitValue(price);
-                stockTransaction.setSymbol(requestData.getSymbol());
+                stockTransaction.setSymbol(symbol);
 
                 AccountTransaction accountTransaction = new AccountTransaction();
                 accountTransaction.setCredit(false);
@@ -138,7 +138,7 @@ public class TransactionServiceImpl implements TransactionService{
                 newHolding.setUnitVal(price);
                 newHolding.setAccountId(account);
                 newHolding.setIsLong(requestData.getIsLong());
-                newHolding.setSymbol(requestData.getSymbol());
+                newHolding.setSymbol(symbol);
                 saveAsTransaction(accountTransaction , stockTransaction , account , newHolding);
 
             }else{
@@ -148,14 +148,14 @@ public class TransactionServiceImpl implements TransactionService{
                 stockTransaction.setQty(requestData.getQty());
                 stockTransaction.setLong(requestData.getIsLong());
                 stockTransaction.setUnitValue(price);
-                stockTransaction.setSymbol(requestData.getSymbol());
+                stockTransaction.setSymbol(symbol);
 
                 Holding newHolding = new Holding();
                 newHolding.setQty(requestData.getQty());
                 newHolding.setUnitVal(price);
                 newHolding.setAccountId(account);
                 newHolding.setIsLong(requestData.getIsLong());
-                newHolding.setSymbol(requestData.getSymbol());
+                newHolding.setSymbol(symbol);
 
                 Deductible deductible;
                 Optional<Deductible> deductibleOp = deductibleRepo.findByAccount(account);
@@ -171,6 +171,65 @@ public class TransactionServiceImpl implements TransactionService{
             }
         }
         return "brought";
+    }
+
+    @Override
+    public String sellStock(PersonDataDTO user, BuySellStockRequestDTO requestData) throws BadRequest {
+        String symbol = requestData.getSymbol().toUpperCase();
+        Optional<Account> accountOp = accountRepo.findByPersonId(user.getId());
+        if(accountOp.isEmpty()) throw new RuntimeException();
+        Account account = accountOp.get();
+        Optional<Holding> holdingOp = holdingRepo.findByAccountIdSymbolAndLong(account , symbol , requestData.getIsLong());
+        if(holdingOp.isEmpty()) throw new BadRequest("Holding not found");
+        Holding holding = holdingOp.get();
+        if(holding.getQty() < requestData.getQty()) throw new BadRequest("Cant sell more than you own");
+        WebClient client = WebClient.create("http://localhost:8080");
+        StockLivePriceResponseDTO priceResponse = client
+                .get()
+                .uri("/stockprice/liveprice?ticker="+symbol)
+                .retrieve()
+                .bodyToMono(StockLivePriceResponseDTO.class)
+                .block();
+        Float price = priceResponse.getLivePrice();
+        if(requestData.getIsLong()){
+            AccountTransaction accountTransaction = new AccountTransaction();
+            accountTransaction.setAccount(account);
+            accountTransaction.setAmount(price * requestData.getQty());
+            accountTransaction.setCredit(true);
+
+            StockTransaction stockTransaction = new StockTransaction();
+            stockTransaction.setAccount(account);
+            stockTransaction.setBuy(false);
+            stockTransaction.setQty(requestData.getQty());
+            stockTransaction.setLong(requestData.getIsLong());
+            stockTransaction.setUnitValue(price);
+            stockTransaction.setSymbol(symbol);
+
+            holding.setQty(holding.getQty() - requestData.getQty());
+            account.setBalance(account.getBalance() + (price * requestData.getQty()));
+            saveAsTransaction(accountTransaction , stockTransaction , account , holding);
+        }else{
+            AccountTransaction accountTransaction = new AccountTransaction();
+            accountTransaction.setAccount(account);
+            accountTransaction.setAmount((holding.getUnitVal() - price) * requestData.getQty());
+            accountTransaction.setCredit(true);
+
+            StockTransaction stockTransaction = new StockTransaction();
+            stockTransaction.setAccount(account);
+            stockTransaction.setBuy(false);
+            stockTransaction.setQty(requestData.getQty());
+            stockTransaction.setLong(requestData.getIsLong());
+            stockTransaction.setUnitValue(price);
+            stockTransaction.setSymbol(symbol);
+
+            holding.setQty(holding.getQty() - requestData.getQty());
+            Optional<Deductible> deductibleOp = deductibleRepo.findByAccount(account);
+            if(deductibleOp.isEmpty()) throw new RuntimeException();
+            Deductible deductible = deductibleOp.get();
+            deductible.setAmount(deductible.getAmount() - (holding.getUnitVal() * requestData.getQty()) * HARD_TO_BORROW_RATE/100);
+            saveAsTransaction(stockTransaction , deductible , holding);
+        }
+        return "Sold Stock";
     }
 
     @Transactional

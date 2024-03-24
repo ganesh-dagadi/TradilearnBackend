@@ -1,6 +1,6 @@
 package com.virtconf.paperTrader.dto;
 
-public class BuyStockRequestDTO {
+public class BuySellStockRequestDTO {
     private String symbol;
     private Integer qty;
     private Boolean isLong;

@@ -1,16 +1,13 @@
 package com.virtconf.paperTrader.controller;
 
 import com.virtconf.paperTrader.dto.AddMoneyRequestDTO;
-import com.virtconf.paperTrader.dto.BuyStockRequestDTO;
+import com.virtconf.paperTrader.dto.BuySellStockRequestDTO;
 import com.virtconf.paperTrader.dto.PersonDataDTO;
 import com.virtconf.paperTrader.service.TransactionService;
 import com.virtconf.paperTrader.utils.error.BadRequest;
-import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
-
-import java.net.http.HttpHeaders;
 
 @RestController
 @RequestMapping("/papertrader/transaction")
@@ -23,9 +20,15 @@ public class TransactionController {
         return service.addMoneyToAccount(user , requestData);
     }
     @PostMapping("/buy")
-    public String buyStock(HttpServletRequest request , @RequestBody BuyStockRequestDTO requestData) throws BadRequest {
+    public String buyStock(HttpServletRequest request , @RequestBody BuySellStockRequestDTO requestData) throws BadRequest {
         PersonDataDTO user = createUserFromHeaders(request);
         return service.buyStock(user , requestData);
+    }
+
+    @PatchMapping("/sell")
+    public String sellStock(HttpServletRequest request , @RequestBody BuySellStockRequestDTO requestData) throws BadRequest {
+        PersonDataDTO user = createUserFromHeaders(request);
+        return service.sellStock(user , requestData);
     }
 
     private PersonDataDTO createUserFromHeaders(HttpServletRequest request){
